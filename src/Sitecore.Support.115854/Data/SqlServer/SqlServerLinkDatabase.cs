@@ -11,6 +11,7 @@
   using Sitecore.Data.SqlServer;
   using Sitecore.Diagnostics;
   using Sitecore.Globalization;
+  using Sitecore.Links;
   using Sitecore.SecurityModel;
   using Sitecore.Threading;
   using static Sitecore.Diagnostics.PerformanceCounters.LinkCounters;
@@ -166,6 +167,11 @@ WHERE {0}ID{1} = {2}id{3}";
     private class RebuildState
     {                                              
       public long PendingCrawlCount = 0;                                                          
+    }
+
+    internal new void UpdateLinks([NotNull] Item item, [NotNull] ItemLink[] links)
+    {                              
+      base.UpdateLinks(item, links);
     }
   }
 }

@@ -50,6 +50,7 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\SqlServer\SwitchingParallelSqlServerLinkDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data\SqlServer\SqlServerLinkDatabase.cs" />
     <Compile Include="Data\Fields\ValueLookupField.cs" />
@@ -58,6 +59,7 @@
     <Content Include="App_Config\Include\zzz\Sitecore.Support.115854.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Config\Include\zzz\Sitecore.Support.115854.Switching.config.disabled" />
     <None Include="packages.config" />
     <None Include="web.config" />
   </ItemGroup>
