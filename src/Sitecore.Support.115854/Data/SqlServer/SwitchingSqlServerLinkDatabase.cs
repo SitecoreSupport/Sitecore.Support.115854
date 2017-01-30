@@ -1,5 +1,6 @@
 namespace Sitecore.Support.Data.SqlServer
 {
+  using System;
   using System.Collections.Generic;
   using System.Linq;
   using Sitecore.Configuration;
@@ -22,7 +23,8 @@ namespace Sitecore.Support.Data.SqlServer
         .Where(x => !string.IsNullOrEmpty(x.Value))
         .ToDictionary(
           x => x.Key,
-          x => (ILinkDatabase)new SqlServerLinkDatabase(Settings.GetConnectionString(x.Value)));
+          x => (ILinkDatabase)new SqlServerLinkDatabase(Settings.GetConnectionString(x.Value)),
+          StringComparer.OrdinalIgnoreCase);
     }
   }
 }
