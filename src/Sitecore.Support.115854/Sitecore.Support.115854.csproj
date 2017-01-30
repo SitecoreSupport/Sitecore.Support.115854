@@ -50,9 +50,13 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\SqlServer\SwitchingParallelSqlServerLinkDatabase.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Data\Links\ILinkDatabase.cs" />
     <Compile Include="Data\SqlServer\SqlServerLinkDatabase.cs" />
+    <Compile Include="Data\Links\SwitchingLinkDatabase.cs" />
+    <Compile Include="Data\SqlServer\SwitchingParallelSqlServerLinkDatabase.cs" />
+    <Compile Include="Data\SqlServer\SwitchingSqlServerLinkDatabase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Data\SqlServer\ParallelSqlServerLinkDatabase.cs" />
     <Compile Include="Data\Fields\ValueLookupField.cs" />
   </ItemGroup>
   <ItemGroup>

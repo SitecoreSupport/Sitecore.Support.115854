@@ -5,10 +5,10 @@ namespace Sitecore.Support.Data.SqlServer
   using Sitecore.Configuration;
   using Sitecore.Support.Data.Links;
 
-  public class SwitchingParallelSqlServerLinkDatabase : SwitchingLinkDatabase
-  {
+  public class SwitchingSqlServerLinkDatabase : SwitchingLinkDatabase
+  {                       
     [UsedImplicitly]
-    public SwitchingParallelSqlServerLinkDatabase() : base(CreateMap())
+    public SwitchingSqlServerLinkDatabase() : base(CreateMap())
     {
     }
 
@@ -22,7 +22,7 @@ namespace Sitecore.Support.Data.SqlServer
         .Where(x => !string.IsNullOrEmpty(x.Value))
         .ToDictionary(
           x => x.Key,
-          x => (ILinkDatabase)new ParallelSqlServerLinkDatabase(Settings.GetConnectionString(x.Value)));
+          x => (ILinkDatabase)new SqlServerLinkDatabase(Settings.GetConnectionString(x.Value)));
     }
   }
 }
