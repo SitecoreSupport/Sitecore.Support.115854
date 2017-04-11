@@ -10,7 +10,7 @@
   using Sitecore.Data.Items;
   using Sitecore.Data.SqlServer;
   using Sitecore.Diagnostics;
-  using Sitecore.Globalization;  
+  using Sitecore.Globalization;
   using Sitecore.SecurityModel;
   using Sitecore.Threading;
 
@@ -22,9 +22,11 @@
   public class ParallelSqlServerLinkDatabase : SqlServerLinkDatabase
   {
     #region Fields
+
     private static readonly bool LinkDatabaseParallelRebuildEnabled;
 
     private static readonly TaskScheduler TaskScheduler;
+
     #endregion
 
     #region constructors
@@ -55,18 +57,19 @@
 
     #region Public methods
 
-    public override void Compact([NotNull]Database database)
+    public override void Compact([NotNull] Database database)
     {
       Assert.ArgumentNotNull(database, nameof(database));
 
       var batchSize = Settings.LinkDatabase.MaximumBatchSize;
 
-      var lastProcessed = this.BatchCompact(database, batchSize, ID.Null);
+      var lastProcessed = ID.Null;
 
-      while (lastProcessed != ID.Null)
+      do
       {
         lastProcessed = this.BatchCompact(database, batchSize, lastProcessed);
       }
+      while (lastProcessed != ID.Null);
     }
 
     /// <summary>
@@ -75,7 +78,7 @@
     /// <para>Uses <see cref="TaskScheduler"/> to limit number of threads during rebuild operation.</para>
     /// </summary>
     /// <param name="database">The database to rebuild links for.</param>
-    public override void Rebuild([NotNull]Database database)
+    public override void Rebuild([NotNull] Database database)
     {
       Assert.ArgumentNotNull(database, nameof(database));
 
@@ -107,7 +110,9 @@
     }
 
     #endregion
+
     #region Non-public members
+
     protected virtual ID BatchCompact([NotNull] Database database, int batchSize, ID lastProcessed)
     {
       Assert.ArgumentNotNull(database, nameof(database));
@@ -144,8 +149,6 @@ WHERE {0}ID{1} = {2}id{3}";
 
       foreach (DataRow dataRow in dataTable.Rows)
       {
-        // for (int i = 0; i < dataTable.Columns.Count; i++)
-        // {
         linkGuid = new Guid(dataRow[0].ToString());
         var sourceItemGuid = new Guid(dataRow[1].ToString());
         var sourceItemLanguage = Language.Parse(dataRow[2].ToString());
@@ -158,8 +161,6 @@ WHERE {0}ID{1} = {2}id{3}";
         }
 
         this.DataApi.Execute(deleteSql, "id", linkGuid);
-
-        // }
       }
 
       return new ID(linkGuid);
@@ -174,24 +175,56 @@ WHERE {0}ID{1} = {2}id{3}";
       {
         using (new SecurityDisabler())
         {
-          this.UpdateReferences(item);
+          this.TryUpdateItemLinks(item);
+
           var children = item.GetChildren(ChildListOptions.AllowReuse | ChildListOptions.IgnoreSecurity | ChildListOptions.SkipSorting);
+
           foreach (Item child in children)
           {
             Interlocked.Increment(ref state.PendingCrawlCount);
 
-            var task = new Task(this.RebuildLinksRecursively, new Tuple<Item, RebuildState>(child, state), CancellationToken.None, TaskCreationOptions.DenyChildAttach);
+            var task = new Task(
+              action: this.RebuildLinksRecursively,
+              state: new Tuple<Item, RebuildState>(child, state),
+              cancellationToken: CancellationToken.None,
+              creationOptions: TaskCreationOptions.DenyChildAttach);
             task.Start(TaskScheduler);
           }
         }
       }
       catch (Exception ex)
       {
-        Log.Error("SUPPORT: error during Link database rebuild. Item: " + item.Uri, ex, this);
+        Log.Error($"SUPPORT: error during Link database rebuild. Item:{item.Uri }", ex, this);
       }
       finally
       {
         Interlocked.Decrement(ref state.PendingCrawlCount);
+      }
+    }
+
+    /// <summary>
+    /// Tries to update item links,and logs long-running link rebuilds.
+    /// </summary>
+    /// <param name="item">The item to have links updated.</param>
+    /// <returns><c>false</c> if exception took place;<c>true</c> otherwise.</returns>
+    protected virtual bool TryUpdateItemLinks([NotNull] Item item)
+    {
+      Debug.ArgumentNotNull(item, nameof(item));
+      try
+      {
+        using (new LongRunningOperationWatcher(
+            threshold: 2 * 1000, // 2 seconds
+            message: $"Updating links for {item.Uri} item takes more than 2 sec."))
+        {
+          this.UpdateReferences(item);
+        }
+
+        return true;
+      }
+      catch (Exception exception)
+      {
+        Log.Error($"Failed to update {item.Uri} links.", exception, this);
+        return false;
       }
     }
 
