@@ -14,25 +14,45 @@
   using Sitecore.Links;
   using Sitecore.SecurityModel;
   using Sitecore.Threading;
-  using static Sitecore.Diagnostics.PerformanceCounters.LinkCounters;
 
   public class ParallelSqlServerLinkDatabase : SqlServerLinkDatabase
   {
-    [UsedImplicitly]
-    public ParallelSqlServerLinkDatabase(string connectionString) : base(connectionString)
-    {
-    }
-
+    #region Fields
     private static readonly bool LinkDatabaseParallelRebuildEnabled;
 
-    private static readonly TaskScheduler taskScheduler;
+    private static readonly TaskScheduler TaskScheduler;
 
+    #endregion
+    #region constructors
     static ParallelSqlServerLinkDatabase()
     {
       LinkDatabaseParallelRebuildEnabled = Settings.GetBoolSetting("LinkDatabase.ParallelRebuild.Enabled", false);
       if (LinkDatabaseParallelRebuildEnabled)
       {
-        taskScheduler = new LimitedConcurrencyLevelTaskScheduler(Settings.GetIntSetting("LinkDatabase.ParallelRebuild.MaxThreadLimit", Environment.ProcessorCount));
+        TaskScheduler = new LimitedConcurrencyLevelTaskScheduler(Settings.GetIntSetting("LinkDatabase.ParallelRebuild.MaxThreadLimit", defaultValue: Environment.ProcessorCount));
+      }
+    }
+
+    [UsedImplicitly]
+    public ParallelSqlServerLinkDatabase(string connectionString) : base(connectionString)
+    {
+    }
+
+    #endregion
+
+    #region Public methods
+
+    public override void Compact([NotNull]Database database)
+    {
+      Assert.ArgumentNotNull(database, nameof(database));
+
+      var batchSize = Settings.LinkDatabase.MaximumBatchSize;
+
+      var lastProcessed = this.BatchCompact(database, batchSize, ID.Null);
+
+      while (lastProcessed != ID.Null)
+      {
+        lastProcessed = this.BatchCompact(database, batchSize, lastProcessed);
       }
     }
 
@@ -54,31 +74,19 @@
 
         var state = new RebuildState();
         Interlocked.Increment(ref state.PendingCrawlCount);
-        RebuildItemInParallel2(new Tuple<Item, RebuildState>(rootItem, state));
+        this.RebuildLinksRecursively(new Tuple<Item, RebuildState>(rootItem, state));
         while (state.PendingCrawlCount > 0L)
         {
-          Thread.Sleep(50);
+          Thread.Sleep(millisecondsTimeout: 50);
         }
       }
 
-      Compact(database);
+      this.Compact(database);
     }
 
-    public override void Compact(Database database)
-    {
-      Assert.ArgumentNotNull(database, nameof(database));
-
-      var batchSize = Settings.LinkDatabase.MaximumBatchSize;
-
-      var lastProcessed = BatchCompact(database, batchSize, ID.Null);
-
-      while (lastProcessed != ID.Null)
-      {
-        lastProcessed = BatchCompact(database, batchSize, lastProcessed);
-      }
-    }
-
-    private ID BatchCompact([NotNull]Database database, int batchSize, ID lastProcessed)
+    #endregion
+    #region Non-public members
+    private ID BatchCompact([NotNull] Database database, int batchSize, ID lastProcessed)
     {
       Assert.ArgumentNotNull(database, nameof(database));
 
@@ -93,7 +101,7 @@ FROM
 	{0}Links{1} WITH (NOLOCK)
 WHERE
 	{0}SourceDatabase{1} = {2}database{3} " +
-    (lastProcessed == ID.Null ? string.Empty : @" AND {0}ID{1} > {2}lastProcessed{3} ") + @"
+                     (lastProcessed == ID.Null ? string.Empty : @" AND {0}ID{1} > {2}lastProcessed{3} ") + @"
 ORDER BY
 	{0}ID{1}";
 
@@ -101,42 +109,43 @@ ORDER BY
 DELETE FROM {0}Links{1} 
 WHERE {0}ID{1} = {2}id{3}";
 
-      Guid linkGuid = Guid.Empty;
+      var linkGuid = Guid.Empty;
 
       var dataTable = new DataTable();
 
-      using (var reader = DataApi.CreateReader(fetchSql, "database", database.Name, "lastProcessed", lastProcessed))
+      using (var reader = this.DataApi.CreateReader(fetchSql, "database", database.Name, "lastProcessed", lastProcessed))
       {
         dataTable.Load(reader.InnerReader);
       }
 
-      DataRead.IncrementBy(dataTable.Rows.Count);
+      Diagnostics.PerformanceCounters.LinkCounters.DataRead.IncrementBy(dataTable.Rows.Count);
 
       foreach (DataRow dataRow in dataTable.Rows)
       {
-        //for (int i = 0; i < dataTable.Columns.Count; i++)
-        //{
+        // for (int i = 0; i < dataTable.Columns.Count; i++)
+        // {
         linkGuid = new Guid(dataRow[0].ToString());
         var sourceItemGuid = new Guid(dataRow[1].ToString());
         var sourceItemLanguage = Language.Parse(dataRow[2].ToString());
         var sourceItemVersion = Sitecore.Data.Version.Parse(int.Parse(dataRow[3].ToString()));
         var sourceItemId = ID.Parse(sourceItemGuid);
 
-        if (ItemExists(sourceItemId, null, sourceItemLanguage, sourceItemVersion, database))
+        if (this.ItemExists(sourceItemId, null, sourceItemLanguage, sourceItemVersion, database))
         {
           continue;
         }
 
-        DataApi.Execute(deleteSql, "id", linkGuid);
-        //}
+        this.DataApi.Execute(deleteSql, "id", linkGuid);
+
+        // }
       }
 
       return new ID(linkGuid);
     }
 
-    private void RebuildItemInParallel2(object o)
+    private void RebuildLinksRecursively(object taskState)
     {
-      var tuple = (Tuple<Item, RebuildState>)o;
+      var tuple = (Tuple<Item, RebuildState>)taskState;
       var item = tuple.Item1;
       var state = tuple.Item2;
       try
@@ -144,13 +153,13 @@ WHERE {0}ID{1} = {2}id{3}";
         using (new SecurityDisabler())
         {
           this.UpdateReferences(item);
-          var children = item.GetChildren(ChildListOptions.None).ToArray();
-          foreach (var child in children)
+          var children = item.GetChildren(ChildListOptions.AllowReuse | ChildListOptions.IgnoreSecurity | ChildListOptions.SkipSorting);
+          foreach (Item child in children)
           {
             Interlocked.Increment(ref state.PendingCrawlCount);
 
-            var task = new Task(RebuildItemInParallel2, new Tuple<Item, RebuildState>(child, state), CancellationToken.None, TaskCreationOptions.DenyChildAttach);
-            task.Start(taskScheduler);
+            var task = new Task(this.RebuildLinksRecursively, new Tuple<Item, RebuildState>(child, state), CancellationToken.None, TaskCreationOptions.DenyChildAttach);
+            task.Start(TaskScheduler);
           }
         }
       }
@@ -164,14 +173,13 @@ WHERE {0}ID{1} = {2}id{3}";
       }
     }
 
-    private class RebuildState
-    {                                              
-      public long PendingCrawlCount = 0;                                                          
-    }
+    #endregion 
 
-    internal new void UpdateLinks([NotNull] Item item, [NotNull] ItemLink[] links)
-    {                              
-      base.UpdateLinks(item, links);
+    #region Nested classes
+    private class RebuildState
+    {
+      public long PendingCrawlCount;
     }
+    #endregion
   }
 }
