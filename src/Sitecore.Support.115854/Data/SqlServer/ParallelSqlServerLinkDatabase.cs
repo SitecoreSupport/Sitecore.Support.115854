@@ -108,7 +108,7 @@
 
     #endregion
     #region Non-public members
-    private ID BatchCompact([NotNull] Database database, int batchSize, ID lastProcessed)
+    protected virtual ID BatchCompact([NotNull] Database database, int batchSize, ID lastProcessed)
     {
       Assert.ArgumentNotNull(database, nameof(database));
 
@@ -165,7 +165,7 @@ WHERE {0}ID{1} = {2}id{3}";
       return new ID(linkGuid);
     }
 
-    private void RebuildLinksRecursively(object taskState)
+    protected virtual void RebuildLinksRecursively(object taskState)
     {
       var tuple = (Tuple<Item, RebuildState>)taskState;
       var item = tuple.Item1;
