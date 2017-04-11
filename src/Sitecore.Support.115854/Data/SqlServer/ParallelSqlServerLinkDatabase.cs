@@ -10,29 +10,42 @@
   using Sitecore.Data.Items;
   using Sitecore.Data.SqlServer;
   using Sitecore.Diagnostics;
-  using Sitecore.Globalization;
-  using Sitecore.Links;
+  using Sitecore.Globalization;  
   using Sitecore.SecurityModel;
   using Sitecore.Threading;
 
+  /// <summary>
+  /// Enables rebuild of links in multiple threads with predefined number threads to be used.
+  /// <para>Each thread acts as producer, and consumer now.</para>
+  /// </summary>
+  /// <seealso cref="Sitecore.Data.SqlServer.SqlServerLinkDatabase"/>
   public class ParallelSqlServerLinkDatabase : SqlServerLinkDatabase
   {
     #region Fields
     private static readonly bool LinkDatabaseParallelRebuildEnabled;
 
     private static readonly TaskScheduler TaskScheduler;
-
     #endregion
+
     #region constructors
+
+    /// <summary>
+    /// Initializes static members of the <see cref="ParallelSqlServerLinkDatabase"/> class.
+    /// <para>Reads <see cref="Settings"/> related to link rebuild.</para>
+    /// </summary>
     static ParallelSqlServerLinkDatabase()
     {
-      LinkDatabaseParallelRebuildEnabled = Settings.GetBoolSetting("LinkDatabase.ParallelRebuild.Enabled", false);
+      LinkDatabaseParallelRebuildEnabled = Settings.GetBoolSetting("LinkDatabase.ParallelRebuild.Enabled", defaultValue: false);
       if (LinkDatabaseParallelRebuildEnabled)
       {
         TaskScheduler = new LimitedConcurrencyLevelTaskScheduler(Settings.GetIntSetting("LinkDatabase.ParallelRebuild.MaxThreadLimit", defaultValue: Environment.ProcessorCount));
       }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ParallelSqlServerLinkDatabase"/> class.
+    /// </summary>
+    /// <param name="connectionString">The connection string leading to database.</param>
     [UsedImplicitly]
     public ParallelSqlServerLinkDatabase(string connectionString) : base(connectionString)
     {
@@ -56,7 +69,13 @@
       }
     }
 
-    public override void Rebuild(Database database)
+    /// <summary>
+    /// Rebuilds links for specified database.
+    /// <para>Recursively travels through Content tree, and rebuilds links for each item.</para>
+    /// <para>Uses <see cref="TaskScheduler"/> to limit number of threads during rebuild operation.</para>
+    /// </summary>
+    /// <param name="database">The database to rebuild links for.</param>
+    public override void Rebuild([NotNull]Database database)
     {
       Assert.ArgumentNotNull(database, nameof(database));
 
@@ -73,8 +92,11 @@
         Assert.IsNotNull(rootItem, $"No root item in database: {database.Name}");
 
         var state = new RebuildState();
+
         Interlocked.Increment(ref state.PendingCrawlCount);
         this.RebuildLinksRecursively(new Tuple<Item, RebuildState>(rootItem, state));
+
+        // wait till all are processed
         while (state.PendingCrawlCount > 0L)
         {
           Thread.Sleep(millisecondsTimeout: 50);
@@ -173,9 +195,12 @@ WHERE {0}ID{1} = {2}id{3}";
       }
     }
 
-    #endregion 
+    #endregion
 
     #region Nested classes
+    /// <summary>
+    /// Carries the count of pending items to be processed.
+    /// </summary>
     private class RebuildState
     {
       public long PendingCrawlCount;
