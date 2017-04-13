@@ -50,11 +50,6 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\Links\ILinkDatabase.cs" />
-    <Compile Include="Data\SqlServer\SqlServerLinkDatabase.cs" />
-    <Compile Include="Data\Links\SwitchingLinkDatabase.cs" />
-    <Compile Include="Data\SqlServer\SwitchingParallelSqlServerLinkDatabase.cs" />
-    <Compile Include="Data\SqlServer\SwitchingSqlServerLinkDatabase.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Pipelines\GetLookupSourceItems\010 - ProcessQuerySource.cs" />
     <Compile Include="Pipelines\GetLookupSourceItems\050 - ProcessDefaultSource.cs" />
