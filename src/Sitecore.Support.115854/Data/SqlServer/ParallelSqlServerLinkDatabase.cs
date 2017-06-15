@@ -143,9 +143,7 @@ WHERE {0}ID{1} = {2}id{3}";
       using (var reader = this.DataApi.CreateReader(fetchSql, "database", database.Name, "lastProcessed", lastProcessed))
       {
         dataTable.Load(reader.InnerReader);
-      }
-
-      Diagnostics.PerformanceCounters.LinkCounters.DataRead.IncrementBy(dataTable.Rows.Count);
+      }    
 
       foreach (DataRow dataRow in dataTable.Rows)
       {
