@@ -74,7 +74,6 @@
     <Content Include="App_Config\Include\zzz\Sitecore.Support.115854.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Config\Include\zzz\Sitecore.Support.115854.Switching.config.disabled" />
     <None Include="packages.config" />
     <None Include="web.config" />
   </ItemGroup>
