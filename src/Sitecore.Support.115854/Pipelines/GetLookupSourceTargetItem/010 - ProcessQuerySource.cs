@@ -24,7 +24,7 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     /// <param name="args">The arguments.</param>
     public virtual void Execute([NotNull] GetLookupSourceTargetItemArgs args)
     {
-      Assert.ArgumentNotNull(args, "args");
+      Assert.ArgumentNotNull(args, nameof(args));
       
       if (string.IsNullOrEmpty(args.Source) || string.IsNullOrEmpty(args.Value))
       {
@@ -34,7 +34,7 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
       bool isFastQuery;
       string sitecoreQuery;
 
-      if (!this.IsSitecoreQuery(args.Source, out sitecoreQuery, out isFastQuery))
+      if (!IsSitecoreQuery(args.Source, out sitecoreQuery, out isFastQuery))
       {
         return;
       }

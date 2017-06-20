@@ -18,17 +18,17 @@
     /// <param name="result">The result.</param>
     public override void ValidateLinks(LinksValidationResult result)
     {
-      Assert.ArgumentNotNull(result, "result");
+      Assert.ArgumentNotNull(result, nameof(result));
 
-      string fieldValue = this.Value;
-      string fieldSource = this.InnerField.Source;
+      string fieldValue = Value;
+      string fieldSource = InnerField.Source;
 
       if (string.IsNullOrEmpty(fieldValue) || string.IsNullOrEmpty(fieldSource))
       {
         return;
       }
 
-      var targetItem = GetLookupSourceTargetItemPipeline.GetTargetItem(this.InnerField.Item, fieldSource, fieldValue);
+      var targetItem = GetLookupSourceTargetItemPipeline.GetTargetItem(InnerField.Item, fieldSource, fieldValue);
 
       if (targetItem != null)
       {

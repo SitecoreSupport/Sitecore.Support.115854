@@ -22,11 +22,11 @@
       var lookupArgs = args.ToLookupSourceItemArgs();
 
       // TODO: Think about better approach instead of loading all items.
-      this.Process(lookupArgs);
+      Process(lookupArgs);
 
       foreach (Item lookupTargetItem in lookupArgs.Result)
       {
-        if (this.Matches(lookupTargetItem, args))
+        if (Matches(lookupTargetItem, args))
         {
           args.SetResultAndAbort(lookupTargetItem);
         }

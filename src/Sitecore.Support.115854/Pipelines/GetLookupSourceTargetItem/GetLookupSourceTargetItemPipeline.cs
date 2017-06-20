@@ -58,9 +58,9 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     [CanBeNull]
     public static Item GetTargetItem([NotNull] Item item, [NotNull] string source, [NotNull] string fieldValue)
     {
-      Assert.ArgumentNotNull(item, "item");
-      Assert.ArgumentNotNull(source, "source");
-      Assert.ArgumentNotNull(fieldValue, "fieldValue");
+      Assert.ArgumentNotNull(item, nameof(item));
+      Assert.ArgumentNotNull(source, nameof(source));
+      Assert.ArgumentNotNull(fieldValue, nameof(fieldValue));
 
       var args = new GetLookupSourceTargetItemArgs
       {
@@ -80,7 +80,7 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     /// <param name="args">The arguments.</param>
     public static void Run([NotNull] GetLookupSourceTargetItemArgs args)
     {
-      Assert.ArgumentNotNull(args, "args");
+      Assert.ArgumentNotNull(args, nameof(args));
 
       try
       {

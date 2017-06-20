@@ -30,18 +30,19 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     /// <param name="args">The arguments.</param>
     public virtual void Execute([NotNull] GetLookupSourceTargetItemArgs args)
     {
-      Assert.ArgumentNotNull(args, "args");
+      Assert.ArgumentNotNull(args, nameof(args));
 
       if (string.IsNullOrEmpty(args.Source) || string.IsNullOrEmpty(args.Value))
       {
         return;
       }
-      string source = args.Source;
-      Item rootItem = args.Item;
 
-      if (this.IsComplex(source))
+      var source = args.Source;
+      var rootItem = args.Item;
+
+      if (IsComplex(source))
       {
-        source = this.BuildComplexSource(source, ref rootItem);
+        source = BuildComplexSource(source, ref rootItem);
       }
 
       string[] paths = source.Split('|');
@@ -66,8 +67,8 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
         }
         else
         {
-          var combinedPath = this.Combine(path, args.Value);
-          string queryPath = this.CreateQuery(combinedPath);
+          var combinedPath = Combine(path, args.Value);
+          string queryPath = CreateQuery(combinedPath);
 
           Item item = queryPath.StartsWithFastQueryPrefix() ? rootItem.Database.SelectSingleItem(queryPath) : rootItem.Axes.SelectSingleItem(queryPath);
 
@@ -91,7 +92,7 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     [NotNull]
     protected virtual string Combine([NotNull]string query, [CanBeNull]string value)
     {
-      Debug.ArgumentNotNull(query, "query");
+      Debug.ArgumentNotNull(query, nameof(query));
 
       return string.IsNullOrEmpty(value) ? query : string.Concat(query,'/', value);
     }

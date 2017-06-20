@@ -45,13 +45,13 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     {
       get
       {
-        return this._item;
+        return _item;
       }
 
       set
       {
-        Assert.ArgumentNotNull(value, "value");
-        this._item = value;
+        Assert.ArgumentNotNull(value, nameof(value));
+        _item = value;
       }
     }
 
@@ -66,13 +66,13 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     {
       get
       {
-        return this._source;
+        return _source;
       }
 
       set
       {
-        Assert.ArgumentNotNull(value, "value");
-        this._source = value;
+        Assert.ArgumentNotNull(value, nameof(value));
+        _source = value;
       }
     }
 
@@ -92,7 +92,7 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     /// <value>
     ///   <c>true</c> if target item is resolved; otherwise, <c>false</c>.
     /// </value>
-    public bool TargetItemResolved => this.TargetItem != null;
+    public bool TargetItemResolved => TargetItem != null;
 
     /// <summary>
     ///   Gets or sets the value.
@@ -105,13 +105,13 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     {
       get
       {
-        return this._value;
+        return _value;
       }
 
       set
       {
-        Assert.ArgumentNotNull(value, "value");
-        this._value = value;
+        Assert.ArgumentNotNull(value, nameof(value));
+        _value = value;
       }
     }
 
@@ -125,8 +125,8 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     /// <param name="targetItem">The target item.</param>
     public void SetResultAndAbort([CanBeNull] Item targetItem)
     {
-      this.TargetItem = targetItem;
-      this.AbortPipeline();
+      TargetItem = targetItem;
+      AbortPipeline();
     }
 
     /// <summary>
@@ -138,8 +138,8 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
     {
       var args = new GetLookupSourceItemsArgs
       {
-        Item = this.Item,
-        Source = this.Source
+        Item = Item,
+        Source = Source
       };
 
       return args;

@@ -24,7 +24,7 @@
     /// <param name="args">The arguments.</param>
     public void Process([NotNull] GetLookupSourceItemsArgs args)
     {
-      Assert.ArgumentNotNull(args, "args");
+      Assert.ArgumentNotNull(args, nameof(args));
 
       if (string.IsNullOrEmpty(args.Source))
       {
@@ -34,9 +34,9 @@
       string source = args.Source;
       Item rootItem = args.Item;
 
-      if (this.IsComplex(source))
+      if (IsComplex(source))
       {
-        source = this.BuildComplexSource(source, ref rootItem);
+        source = BuildComplexSource(source, ref rootItem);
       }
 
       string[] paths = source.Split('|');
@@ -61,7 +61,7 @@
         }
         else
         {
-          string queryPath = this.CreateQuery(path);
+          string queryPath = CreateQuery(path);
         
           queryPath += "/*";
 
@@ -92,7 +92,8 @@
     /// </contract>
     protected virtual bool IsComplex(string source)
     {
-      Assert.ArgumentNotNull(source, "source");
+      Assert.ArgumentNotNull(source, nameof(source));
+
       return LookupSources.IsComplex(source);
     }
 
@@ -110,7 +111,7 @@
     [NotNull]
     protected virtual string BuildComplexSource([NotNull] string source, ref Item rootItem)
     {
-      Debug.ArgumentNotNull(source, "source");
+      Debug.ArgumentNotNull(source, nameof(source));
 
       var parameters = new UrlString(source);
 
@@ -126,6 +127,7 @@
       }
 
       source = parameters["datasource"] ?? string.Empty;
+
       return source;
     }
 
@@ -137,7 +139,7 @@
     [NotNull]
     protected virtual string CreateQuery([NotNull] string queryPath)
     {
-      Debug.ArgumentNotNull(queryPath, "queryPath");
+      Debug.ArgumentNotNull(queryPath, nameof(queryPath));
 
       if (queryPath.StartsWith("/", StringComparison.InvariantCulture) && !queryPath.StartsWith("/sitecore", StringComparison.OrdinalIgnoreCase) && !queryPath.StartsWith("/" + ItemIDs.RootID, StringComparison.OrdinalIgnoreCase))
       {

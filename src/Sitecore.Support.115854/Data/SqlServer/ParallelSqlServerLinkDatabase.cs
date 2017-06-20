@@ -67,7 +67,7 @@
 
       do
       {
-        lastProcessed = this.BatchCompact(database, batchSize, lastProcessed);
+        lastProcessed = BatchCompact(database, batchSize, lastProcessed);
       }
       while (lastProcessed != ID.Null);
     }
@@ -97,7 +97,7 @@
         var state = new RebuildState();
 
         Interlocked.Increment(ref state.PendingCrawlCount);
-        this.RebuildLinksRecursively(new Tuple<Item, RebuildState>(rootItem, state));
+        RebuildLinksRecursively(new Tuple<Item, RebuildState>(rootItem, state));
 
         // wait till all are processed
         while (state.PendingCrawlCount > 0L)
@@ -106,7 +106,7 @@
         }
       }
 
-      this.Compact(database);
+      Compact(database);
     }
 
     #endregion
@@ -140,7 +140,7 @@ WHERE {0}ID{1} = {2}id{3}";
 
       var dataTable = new DataTable();
 
-      using (var reader = this.DataApi.CreateReader(fetchSql, "database", database.Name, "lastProcessed", lastProcessed))
+      using (var reader = DataApi.CreateReader(fetchSql, "database", database.Name, "lastProcessed", lastProcessed))
       {
         dataTable.Load(reader.InnerReader);
       }    
@@ -153,12 +153,12 @@ WHERE {0}ID{1} = {2}id{3}";
         var sourceItemVersion = Sitecore.Data.Version.Parse(int.Parse(dataRow[3].ToString()));
         var sourceItemId = ID.Parse(sourceItemGuid);
 
-        if (this.ItemExists(sourceItemId, null, sourceItemLanguage, sourceItemVersion, database))
+        if (ItemExists(sourceItemId, null, sourceItemLanguage, sourceItemVersion, database))
         {
           continue;
         }
 
-        this.DataApi.Execute(deleteSql, "id", linkGuid);
+        DataApi.Execute(deleteSql, "id", linkGuid);
       }
 
       return new ID(linkGuid);
@@ -173,7 +173,7 @@ WHERE {0}ID{1} = {2}id{3}";
       {
         using (new SecurityDisabler())
         {
-          this.TryUpdateItemLinks(item);
+          TryUpdateItemLinks(item);
 
           var children = item.GetChildren(ChildListOptions.AllowReuse | ChildListOptions.IgnoreSecurity | ChildListOptions.SkipSorting);
 
@@ -182,17 +182,18 @@ WHERE {0}ID{1} = {2}id{3}";
             Interlocked.Increment(ref state.PendingCrawlCount);
 
             var task = new Task(
-              action: this.RebuildLinksRecursively,
+              action: RebuildLinksRecursively,
               state: new Tuple<Item, RebuildState>(child, state),
               cancellationToken: CancellationToken.None,
               creationOptions: TaskCreationOptions.DenyChildAttach);
+
             task.Start(TaskScheduler);
           }
         }
       }
       catch (Exception ex)
       {
-        Log.Error($"SUPPORT: error during Link database rebuild. Item:{item.Uri }", ex, this);
+        Log.Error($"An error occurred during Link database rebuild. Item: { item.Uri }", ex, this);
       }
       finally
       {
@@ -213,7 +214,7 @@ WHERE {0}ID{1} = {2}id{3}";
         var threshold = 2 * 1000; // 2 seconds
         using (new LongRunningOperationWatcher(threshold, "Updating links for {0} item takes more than 2 sec.", item.Uri.ToString()))
         {
-          this.UpdateReferences(item);
+          UpdateReferences(item);
         }
 
         return true;

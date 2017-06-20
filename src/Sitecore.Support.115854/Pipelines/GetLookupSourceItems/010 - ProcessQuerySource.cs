@@ -19,13 +19,13 @@
     /// <param name="args">The arguments.</param>
     public virtual void Process([NotNull] GetLookupSourceItemsArgs args)
     {
-      Assert.ArgumentNotNull(args, "args");
+      Assert.ArgumentNotNull(args, nameof(args));
 
       bool isFastQuery;
 
       string sitecoreQuery;
 
-      if (!this.IsSitecoreQuery(args.Source, out sitecoreQuery, out isFastQuery))
+      if (!IsSitecoreQuery(args.Source, out sitecoreQuery, out isFastQuery))
       {
         return;
       }

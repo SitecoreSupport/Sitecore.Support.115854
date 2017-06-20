@@ -42,7 +42,7 @@ namespace Sitecore.Support.Extensions.SitecoreQueryExtensions
     [NotNull]
     public static string EscapeQueryPath([NotNull] this string queryPath)
     {
-      Assert.ArgumentNotNull(queryPath, "queryPath");
+      Assert.ArgumentNotNull(queryPath, nameof(queryPath));
 
       string[] names = queryPath.Split('/');
       bool escaped = false;
