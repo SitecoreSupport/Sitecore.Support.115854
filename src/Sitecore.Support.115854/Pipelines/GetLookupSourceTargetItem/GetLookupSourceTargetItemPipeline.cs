@@ -84,7 +84,8 @@ namespace Sitecore.Support.Pipelines.GetLookupSourceTargetItem
 
       try
       {
-        using (new LongRunningOperationWatcher(1000, $"{PipelineName} pipeline[item={args.Item.Uri}, source={args.Source}]"))
+        var threshold = 1 * 1000; // 1 second
+        using (new LongRunningOperationWatcher(threshold, "{0} pipeline[item={1}, source={2}]", PipelineName, args.Item.Uri.ToString(), args.Source))
         {
           LookupSourceTargetItemPipeline?.Run(args);
         }

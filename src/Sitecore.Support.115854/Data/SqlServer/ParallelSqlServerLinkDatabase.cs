@@ -210,9 +210,8 @@ WHERE {0}ID{1} = {2}id{3}";
       Debug.ArgumentNotNull(item, nameof(item));
       try
       {
-        using (new LongRunningOperationWatcher(
-            threshold: 2 * 1000, // 2 seconds
-            message: $"Updating links for {item.Uri} item takes more than 2 sec."))
+        var threshold = 2 * 1000; // 2 seconds
+        using (new LongRunningOperationWatcher(threshold, "Updating links for {0} item takes more than 2 sec.", item.Uri.ToString()))
         {
           this.UpdateReferences(item);
         }
