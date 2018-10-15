@@ -21,6 +21,7 @@
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
     <TargetFrameworkProfile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,7 +64,6 @@
     <Compile Include="Pipelines\GetLookupSourceItems\050 - ProcessDefaultSource.cs" />
     <Compile Include="Pipelines\GetLookupSourceTargetItem\010 - ProcessQuerySource.cs" />
     <Compile Include="Pipelines\GetLookupSourceTargetItem\050 - ProcessDefaultSource.cs" />
-    <Compile Include="Pipelines\GetLookupSourceTargetItem\060 - GetAccountsDataSource.cs" />
     <Compile Include="Pipelines\GetLookupSourceTargetItem\GetLookupSourceTargetItemArgs.cs" />
     <Compile Include="Pipelines\GetLookupSourceTargetItem\GetLookupSourceTargetItemPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
