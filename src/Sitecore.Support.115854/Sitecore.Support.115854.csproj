@@ -31,6 +31,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,16 +60,8 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Pipelines\GetLookupSourceItems\010 - ProcessQuerySource.cs" />
-    <Compile Include="Pipelines\GetLookupSourceItems\050 - ProcessDefaultSource.cs" />
-    <Compile Include="Pipelines\GetLookupSourceTargetItem\010 - ProcessQuerySource.cs" />
-    <Compile Include="Pipelines\GetLookupSourceTargetItem\050 - ProcessDefaultSource.cs" />
-    <Compile Include="Pipelines\GetLookupSourceTargetItem\GetLookupSourceTargetItemArgs.cs" />
-    <Compile Include="Pipelines\GetLookupSourceTargetItem\GetLookupSourceTargetItemPipeline.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data\SqlServer\ParallelSqlServerLinkDatabase.cs" />
-    <Compile Include="Data\Fields\ValueLookupField.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Config\Include\zzz\Sitecore.Support.115854.config" />
